@@ -13,6 +13,8 @@ import java.util.List;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.mcode.mjl.util.DataConverter;
+
 public class WavefrontObj {
 	
 	public static final String TAG = "WavefrontObj";
@@ -45,18 +47,19 @@ public class WavefrontObj {
 						}
 						for(int i = 1; i < e.length; i++) {
 							indexList.add((short)(Short.parseShort(e[i]) - 1)); // wavefront format start counting from 1.
-							Log.w(TAG, e[i]);
 						}
 					}
 				}
 				line = br.readLine();
 			}
+			br.close();
 		} catch (Exception e) {
 			Log.e(TAG, e.toString());
 		} 
     	
+    	float[] vertexArray = DataConverter.asArray(vertexList);
 		vertexBuffer = ByteBuffer.allocateDirect(vertexList.size()).order(ByteOrder.nativeOrder()).asFloatBuffer();
-		//vertexBuffer.put(null);
+		vertexBuffer.put(vertexArray);
 	}
 	
 	private void loadMaterial(InputStream mtl) {
