@@ -11,10 +11,10 @@ public class DataConverter {
     	return floatArray;
 	}
 	public static short[] asShortArray(List<Short> shortList) {
-    	short[] floatArray = new short[shortList.size()];
+    	short[] shortArray = new short[shortList.size()];
     	for(int i = 0; i < shortList.size(); i++) {
-    		floatArray[i] = shortList.get(i);
+    		shortArray[i] = shortList.get(i);
     	}
-    	return floatArray;
+    	return shortArray;
 	}
 }

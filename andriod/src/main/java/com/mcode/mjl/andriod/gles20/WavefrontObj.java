@@ -29,7 +29,7 @@ public class WavefrontObj {
 	private static final int SHORT_SIZE_BYTES = 2;
 	private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 3 * FLOAT_SIZE_BYTES;
 	
-	MVPMatrix matrix;
+	private MVPMatrix matrix;
 
 	public WavefrontObj(MVPMatrix m, InputStream obj, InputStream mtl) {
 		matrix = m;
@@ -81,17 +81,10 @@ public class WavefrontObj {
 		int positionHandle = GLES20.glGetAttribLocation(program, positionName);
 		GLES20.glEnableVertexAttribArray(positionHandle);
 		GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, TRIANGLE_VERTICES_DATA_STRIDE_BYTES, vertexBuffer);
-
-//		float mAngleX = 0.0f;
-//		float mAngleY = 0.0f;
-//		Matrix.setRotateM(matrix.getMMatrix(), 0, mAngleX, 0f, 1f, 0f);
-//		Matrix.rotateM(matrix.getMMatrix(), 0, mAngleY, 1f, 0f, 0f);
 		
 		int mvpPMatrixHandle = GLES20.glGetUniformLocation(program, mvpMatrixName);
-		for(int i = 0; i < 16; i++) {
-			Log.e(TAG, ""+matrix.getMVPMatrix()[i]);
-		}
 		GLES20.glUniformMatrix4fv(mvpPMatrixHandle, 1, false, matrix.getMVPMatrix(), 0);
+//		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3 * 10000);
 
 		GLES20.glDrawElements(GLES20.GL_TRIANGLES, 3, GLES20.GL_UNSIGNED_SHORT, indexBuffer); 
 	}
