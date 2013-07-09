@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.opengl.GLES20;
-import android.opengl.Matrix;
 import android.util.Log;
 
+import com.mcode.mjl.andriod.gles20.shaders.ShaderProgram;
 import com.mcode.mjl.util.DataConverter;
 
 public class WavefrontObj {
@@ -30,8 +30,10 @@ public class WavefrontObj {
 	private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 3 * FLOAT_SIZE_BYTES;
 	
 	private MVPMatrix matrix;
-
-	public WavefrontObj(MVPMatrix m, InputStream obj, InputStream mtl) {
+	private ShaderProgram shaderProgram;
+	
+	public WavefrontObj(ShaderProgram program, MVPMatrix m, InputStream obj, InputStream mtl) {
+		this.shaderProgram = program;
 		matrix = m;
 		loadObject(obj);
 		loadMaterial(mtl);
@@ -68,24 +70,35 @@ public class WavefrontObj {
     	
 		vertexBuffer = ByteBuffer.allocateDirect(vertexList.size() * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		vertexBuffer.put(DataConverter.asFloatArray(vertexList)).position(0); 
-	
-		indexBuffer = ByteBuffer.allocate(indexList.size() * SHORT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asShortBuffer();
+
+		indexBuffer = ByteBuffer.allocateDirect(indexList.size() * SHORT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asShortBuffer();
 		indexBuffer.put(DataConverter.asShortArray(indexList)).position(0);
+
 	}
 	
 	private void loadMaterial(InputStream mtl) {
-		
 	}
 	
-	public void drawFrame(int program, String positionName, String mvpMatrixName) {
-		int positionHandle = GLES20.glGetAttribLocation(program, positionName);
+	public void drawFrame() {
+		Log.e(TAG, "drawing frame...");
+		int program = shaderProgram.getProgram();
+		String positionAttribute = shaderProgram.getPositionAttribute();
+		String mvpMatrixUniform = shaderProgram.getMVPMatrixUniform();
+		GLES20.glUseProgram(program);
+		
+		int positionHandle = GLES20.glGetAttribLocation(program, positionAttribute);
 		GLES20.glEnableVertexAttribArray(positionHandle);
 		GLES20.glVertexAttribPointer(positionHandle, 3, GLES20.GL_FLOAT, false, TRIANGLE_VERTICES_DATA_STRIDE_BYTES, vertexBuffer);
 		
-		int mvpPMatrixHandle = GLES20.glGetUniformLocation(program, mvpMatrixName);
+		int mvpPMatrixHandle = GLES20.glGetUniformLocation(program, mvpMatrixUniform);
 		GLES20.glUniformMatrix4fv(mvpPMatrixHandle, 1, false, matrix.getMVPMatrix(), 0);
-//		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3 * 10000);
+		
+		//GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
 
-		GLES20.glDrawElements(GLES20.GL_TRIANGLES, 3, GLES20.GL_UNSIGNED_SHORT, indexBuffer); 
+		try {
+		GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexList.size(), GLES20.GL_UNSIGNED_SHORT, indexBuffer); 
+		} catch(Exception e) {
+			Log.e(TAG, e.toString());
+		}
 	}
 }
