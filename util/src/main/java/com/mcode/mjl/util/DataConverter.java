@@ -17,4 +17,11 @@ public class DataConverter {
     	}
     	return shortArray;
 	}
+	public static int[] asIntArray(List<Integer> intList) {
+    	int[] intArray = new int[intList.size()];
+    	for(int i = 0; i < intList.size(); i++) {
+    		intArray[i] = intList.get(i);
+    	}
+    	return intArray;
+	}
 }

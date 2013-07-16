@@ -1,7 +1,11 @@
 package com.mcode.mjl.andriod.gles20.shaders;
 
 public interface ShaderProgram {
-	public int getProgram();
-	public String getPositionAttribute();
-	public String getMVPMatrixUniform();
+	/**
+	 * 
+	 * @return program handle.
+	 */
+	int getProgram();
+	String getPositionAttribute();
+	String getMVPMatrixUniform();
 }

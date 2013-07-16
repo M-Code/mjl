@@ -1,4 +1,4 @@
-package com.mcode.mjl.andriod.gles20;
+package com.mcode.mjl.andriod.gles20.matrix;
 
 import android.opengl.Matrix;
 
@@ -7,6 +7,7 @@ public class MVPMatrix {
     private float[] mMatrix = new float[16];
     private float[] vMatrix = new float[16];
     private float[] mvpMatrix = new float[16];
+    
     public MVPMatrix() {
     	Matrix.setIdentityM(mMatrix, 0);
     	Matrix.setIdentityM(vMatrix, 0);
@@ -27,4 +28,5 @@ public class MVPMatrix {
 		Matrix.multiplyMM(mvpMatrix, 0, pMatrix, 0, mvpMatrix, 0);
 		return mvpMatrix;
     }
+    
 }

@@ -1,4 +1,4 @@
-package com.mcode.mjl.andriod.gles20;
+package com.mcode.mjl.andriod.gles20.model;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -6,37 +6,45 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
+import com.mcode.mjl.andriod.gles20.matrix.MVPMatrix;
 import com.mcode.mjl.andriod.gles20.shaders.ShaderProgram;
 import com.mcode.mjl.util.DataConverter;
 
-public class WavefrontObj {
+public class WavefrontObj implements Model {
 	
 	public static final String TAG = "WavefrontObj";
 	
 	private List<Float> vertexList = new ArrayList<Float>();
-	private List<Short> indexList = new ArrayList<Short>();
+	private List<Integer> indexList = new ArrayList<Integer>();
 	private FloatBuffer vertexBuffer;
-	private ShortBuffer indexBuffer;
+	private IntBuffer indexBuffer;
 	
 	private static final int FLOAT_SIZE_BYTES = 4;
+	private static final int INT_SIZE_BYTES = 4;
 	private static final int SHORT_SIZE_BYTES = 2;
 	private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 3 * FLOAT_SIZE_BYTES;
 	
 	private MVPMatrix matrix;
 	private ShaderProgram shaderProgram;
+	private Context ctx;
 	
-	public WavefrontObj(ShaderProgram program, MVPMatrix m, InputStream obj, InputStream mtl) {
+	public WavefrontObj(ShaderProgram program, MVPMatrix m, InputStream obj, Context ctx) {
+		if(ctx == null) {
+			throw new IllegalArgumentException("Context cannot be null");
+		}
+		this.ctx = ctx;
 		this.shaderProgram = program;
+		
 		matrix = m;
 		loadObject(obj);
-		loadMaterial(mtl);
 	}
 	
 	private void loadObject(InputStream obj) {
@@ -55,9 +63,23 @@ public class WavefrontObj {
 						if(e.length >= 5) {
 							Log.e(TAG, "ERROR: WavefrontObj currently only support triangle faces! This face has " + (e.length - 1) + " vertices!");
 						}
+						
 						for(int i = 1; i < e.length; i++) {
-							indexList.add((short)(Short.parseShort(e[i]) - 1)); // wavefront format start counting from 1.
+							String eSub[] = e[i].split("/");
+							indexList.add((int)(Integer.parseInt(eSub[0]) - 1)); // wavefront format start counting from 1.
 						}
+					} else if (e[0].equals("mtllib")) {
+						loadMaterial(ctx.getAssets().open(e[1]));
+					} else if(e[0].equals("usemtl")) {
+						Log.w(TAG, "No support for usemtl yet");
+					} else if(e[0].equals("o")) {
+						Log.w(TAG, "No support for o yet");
+					} else if(e[0].equals("s")) {
+						Log.w(TAG, "No support for s yet");
+					} else if (e[0].startsWith("#")) { 
+						// Comment. Ignore.
+					} else {
+						Log.e(TAG, "Cannot parse [" + e[0] +"]" );
 					}
 				}
 				line = br.readLine();
@@ -71,16 +93,19 @@ public class WavefrontObj {
 		vertexBuffer = ByteBuffer.allocateDirect(vertexList.size() * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		vertexBuffer.put(DataConverter.asFloatArray(vertexList)).position(0); 
 
-		indexBuffer = ByteBuffer.allocateDirect(indexList.size() * SHORT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asShortBuffer();
-		indexBuffer.put(DataConverter.asShortArray(indexList)).position(0);
-
+		indexBuffer = ByteBuffer.allocateDirect(indexList.size() * INT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asIntBuffer();
+		indexBuffer.put(DataConverter.asIntArray(indexList)).position(0);
 	}
 	
 	private void loadMaterial(InputStream mtl) {
+		Log.i(TAG, "Loading material...");
+	}
+	
+	public void setMVPMatrix(MVPMatrix matrix) {
+		this.matrix = matrix;
 	}
 	
 	public void drawFrame() {
-		Log.e(TAG, "drawing frame...");
 		int program = shaderProgram.getProgram();
 		String positionAttribute = shaderProgram.getPositionAttribute();
 		String mvpMatrixUniform = shaderProgram.getMVPMatrixUniform();
@@ -92,13 +117,6 @@ public class WavefrontObj {
 		
 		int mvpPMatrixHandle = GLES20.glGetUniformLocation(program, mvpMatrixUniform);
 		GLES20.glUniformMatrix4fv(mvpPMatrixHandle, 1, false, matrix.getMVPMatrix(), 0);
-		
-		//GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 3);
-
-		try {
-		GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexList.size(), GLES20.GL_UNSIGNED_SHORT, indexBuffer); 
-		} catch(Exception e) {
-			Log.e(TAG, e.toString());
-		}
+		GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexList.size(), GLES20.GL_UNSIGNED_INT, indexBuffer); 
 	}
 }
