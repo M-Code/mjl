@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,12 +23,11 @@ public class WavefrontObj implements Model {
 	public static final String TAG = "WavefrontObj";
 	
 	private List<Float> vertexList = new ArrayList<Float>();
-	private List<Integer> indexList = new ArrayList<Integer>();
+	private List<Short> indexList = new ArrayList<Short>();
 	private FloatBuffer vertexBuffer;
-	private IntBuffer indexBuffer;
+	private ShortBuffer indexBuffer;
 	
 	private static final int FLOAT_SIZE_BYTES = 4;
-	private static final int INT_SIZE_BYTES = 4;
 	private static final int SHORT_SIZE_BYTES = 2;
 	private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 3 * FLOAT_SIZE_BYTES;
 	
@@ -66,7 +65,7 @@ public class WavefrontObj implements Model {
 						
 						for(int i = 1; i < e.length; i++) {
 							String eSub[] = e[i].split("/");
-							indexList.add((int)(Integer.parseInt(eSub[0]) - 1)); // wavefront format start counting from 1.
+							indexList.add((short)(Short.parseShort(eSub[0]) - 1)); // wavefront format start counting from 1.
 						}
 					} else if (e[0].equals("mtllib")) {
 						loadMaterial(ctx.getAssets().open(e[1]));
@@ -93,8 +92,8 @@ public class WavefrontObj implements Model {
 		vertexBuffer = ByteBuffer.allocateDirect(vertexList.size() * FLOAT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asFloatBuffer();
 		vertexBuffer.put(DataConverter.asFloatArray(vertexList)).position(0); 
 
-		indexBuffer = ByteBuffer.allocateDirect(indexList.size() * INT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asIntBuffer();
-		indexBuffer.put(DataConverter.asIntArray(indexList)).position(0);
+		indexBuffer = ByteBuffer.allocateDirect(indexList.size() * SHORT_SIZE_BYTES).order(ByteOrder.nativeOrder()).asShortBuffer();
+		indexBuffer.put(DataConverter.asShortArray(indexList)).position(0);
 	}
 	
 	private void loadMaterial(InputStream mtl) {
@@ -117,6 +116,6 @@ public class WavefrontObj implements Model {
 		
 		int mvpPMatrixHandle = GLES20.glGetUniformLocation(program, mvpMatrixUniform);
 		GLES20.glUniformMatrix4fv(mvpPMatrixHandle, 1, false, matrix.getMVPMatrix(), 0);
-		GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexList.size(), GLES20.GL_UNSIGNED_INT, indexBuffer); 
+		GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexList.size(), GLES20.GL_UNSIGNED_SHORT, indexBuffer); 
 	}
 }
