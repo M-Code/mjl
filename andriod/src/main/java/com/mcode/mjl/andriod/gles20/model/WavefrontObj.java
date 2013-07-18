@@ -98,6 +98,25 @@ public class WavefrontObj implements Model {
 	
 	private void loadMaterial(InputStream mtl) {
 		Log.i(TAG, "Loading material...");
+    	BufferedReader br = new BufferedReader(new InputStreamReader(mtl));
+    	try {
+			String line = br.readLine();
+			while(line != null) {
+				String[] e = line.split(" ");
+				if(e.length > 1) {
+					if(e[0].equals("newmtl")) {
+
+					} else {
+						Log.e(TAG, "Cannot parse [" + e[0] +"]" );
+					}
+				}
+				line = br.readLine();
+			}
+			br.close();
+			
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+		} 
 	}
 	
 	public void setMVPMatrix(MVPMatrix matrix) {
