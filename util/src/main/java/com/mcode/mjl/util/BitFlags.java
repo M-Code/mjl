@@ -57,7 +57,7 @@ public final class BitFlags {
 	}
 	
 	public byte[] getBytes() {
-		return null;
+		return data;
 	}
 
 	@Override

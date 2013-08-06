@@ -24,5 +24,14 @@ public class BitFlagsTest {
 		assertTrue(bf.get(0));
 		assertTrue(bf.get(7));
 	}
+	
+	@Test
+	public void testFalse() {
+		BitFlags bf = new BitFlags(1);
+		BitFlags bf2 = new BitFlags(1);
+		assertEquals(bf, bf2);
+		bf.set(4);
+		assertFalse(bf.equals(bf2));
+	}
 
 }

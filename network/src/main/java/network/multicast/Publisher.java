@@ -15,28 +15,28 @@ public class Publisher {
 	private ZMQ.Context ctx = ZMQ.context();
 	private ZMQ.Socket pub = ctx.socket(ZMQ.PUB);
 	
-	public Publisher(String group, final int port, int ttl) throws IOException {
+	public Publisher() throws IOException {
 		final InetAddress host = NetUtil.getNonLoopbackLocalHost();
 		
-		pub.bind("tcp://" + host.getHostAddress() + ":" + port);
+		pub.bind("tcp://" + host.getHostAddress() + ":" + Config.PUBLISHING_PORT);
 
-		final InetAddress multicastGroup = InetAddress.getByName(group);
-		final MulticastSocket socket = new MulticastSocket();
-		socket.setInterface(host);
-		socket.setTimeToLive(ttl);
+		final InetAddress advertisementGroup = InetAddress.getByName(Config.ADVERTISEMENT_GROUP);
+		final MulticastSocket advertisementSocket = new MulticastSocket();
+		advertisementSocket.setInterface(host);
+		advertisementSocket.setTimeToLive(Config.ADVERTISEMENT_TTL);
 		
 		Thread advertisingThread = new Thread(new Runnable() {
 			public void run() {
 				byte[] data = host.getAddress();
 				while(!Thread.currentThread().isInterrupted()) {
 					try {
-						socket.send(new DatagramPacket(data, data.length, multicastGroup, port));
+						advertisementSocket.send(new DatagramPacket(data, data.length, advertisementGroup, Config.ADVERTISEMENT_PORT));
 						Thread.sleep(ADVERTISING_INTERVAL);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
-				socket.close();
+				advertisementSocket.close();
 			}
 		}, "Publisher Advertising Thread");
 		advertisingThread.start();

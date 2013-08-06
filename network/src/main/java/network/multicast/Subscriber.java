@@ -16,14 +16,11 @@ public class Subscriber {
 	private ZMQ.Context ctx = ZMQ.context();
 	private ZMQ.Socket sub = ctx.socket(ZMQ.SUB);
 	
-	private MulticastSocket socket;
-	public void subscribe(final String group, final int port, final MessageListener listener) throws IOException {
+	private MulticastSocket advertisementSocket;
+	
+	public void subscribe(final MessageListener listener) throws IOException {
 		sub.subscribe(NetUtil.ZERO_BYTE_ARRAY);
-		socket = new MulticastSocket(port);
-		socket.setInterface(NetUtil.getNonLoopbackLocalHost());
-		socket.joinGroup(InetAddress.getByName(group));
 		Thread messageListeningThread = new Thread(new Runnable() {
-
 			public void run() {
 				while(!Thread.currentThread().isInterrupted()) {
 					byte[] subject = sub.recv();
@@ -33,25 +30,28 @@ public class Subscriber {
 					}
 				}
 			}
-			
 		}, "MessageListeningThread");
 		messageListeningThread.start();
 		
+		
+		advertisementSocket = new MulticastSocket(Config.ADVERTISEMENT_PORT);
+		advertisementSocket.setInterface(NetUtil.getNonLoopbackLocalHost());
+		advertisementSocket.joinGroup(InetAddress.getByName(Config.ADVERTISEMENT_GROUP));
 		Thread advertisementListeningThread = new Thread(new Runnable(){
 			public void run() {
 				byte[] buffer = new byte[1024];
 				DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 				Set<String> subscribedIPs = new HashSet<String>();
-				while(true) {
+				while(!Thread.currentThread().isInterrupted()) {
 					try {
-						socket.receive(packet);
+						advertisementSocket.receive(packet);
 						if(packet.getLength() == 4) {
 							byte[] data = Arrays.copyOfRange(packet.getData(), packet.getOffset(), packet.getOffset() + packet.getLength());
 							int offset = packet.getOffset();
 							
-							String ip = "" + NetUtil.getUnsignedByte(data[offset]) + "." + NetUtil.getUnsignedByte(data[offset + 1]) + "." + NetUtil.getUnsignedByte(data[offset + 2]) + "." + NetUtil.getUnsignedByte(data[offset + 3]);
+							String ip = NetUtil.bytesToIP(Arrays.copyOfRange(data, offset, offset + 4));
 							if(!subscribedIPs.contains(ip)) {
-								sub.connect("tcp://" + ip + ":" + port);
+								sub.connect("tcp://" + ip + ":" + Config.PUBLISHING_PORT);
 								subscribedIPs.add(ip);
 							}
 						}
@@ -61,12 +61,12 @@ public class Subscriber {
 				}
 			}
 			
-		}, "AdvertisementListeningThread:" + group + ":" + port);
+		}, "AdvertisementListeningThread");
 		advertisementListeningThread.start();
 	}
 	
 	@Override
 	public void finalize() {
-		socket.close();
+		advertisementSocket.close();
 	}
 }
