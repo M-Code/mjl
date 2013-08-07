@@ -42,8 +42,8 @@ public class Publisher {
 		advertisingThread.start();
 	}
 	
-	public void publish(byte[] data) throws IOException {
-		pub.send(NetUtil.ZERO_BYTE_ARRAY, ZMQ.SNDMORE);
+	public void publish(byte subject, byte[] data) throws IOException {
+		pub.send(new byte[] { subject }, ZMQ.SNDMORE);
 		pub.send(data, 0);
 	}
 }

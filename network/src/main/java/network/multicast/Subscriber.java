@@ -18,22 +18,7 @@ public class Subscriber {
 	
 	private MulticastSocket advertisementSocket;
 	
-	public void subscribe(final MessageListener listener) throws IOException {
-		sub.subscribe(NetUtil.ZERO_BYTE_ARRAY);
-		Thread messageListeningThread = new Thread(new Runnable() {
-			public void run() {
-				while(!Thread.currentThread().isInterrupted()) {
-					byte[] subject = sub.recv();
-					byte[] data = sub.recv();
-					if(Arrays.equals(subject, NetUtil.ZERO_BYTE_ARRAY)) {
-						listener.messageReceived(data);
-					}
-				}
-			}
-		}, "MessageListeningThread");
-		messageListeningThread.start();
-		
-		
+	public Subscriber() throws IOException {
 		advertisementSocket = new MulticastSocket(Config.ADVERTISEMENT_PORT);
 		advertisementSocket.setInterface(NetUtil.getNonLoopbackLocalHost());
 		advertisementSocket.joinGroup(InetAddress.getByName(Config.ADVERTISEMENT_GROUP));
@@ -63,6 +48,21 @@ public class Subscriber {
 			
 		}, "AdvertisementListeningThread");
 		advertisementListeningThread.start();
+	}
+	public void subscribe(final byte subject, final MessageListener listener) throws IOException {
+		sub.subscribe(new byte[]{ subject });
+		Thread messageListeningThread = new Thread(new Runnable() {
+			public void run() {
+				while(!Thread.currentThread().isInterrupted()) {
+					byte[] subjectArray = sub.recv();
+					byte[] data = sub.recv();
+					if(subjectArray[0] == subject) {
+						listener.messageReceived(subject, data);
+					}
+				}
+			}
+		}, "MessageListeningThread");
+		messageListeningThread.start();
 	}
 	
 	@Override
