@@ -8,5 +8,6 @@
   	<module>andriod</module>
   	<module>util</module>
   	<module>network</module>
+    <module>ninja</module>
   </modules>
 </project>
