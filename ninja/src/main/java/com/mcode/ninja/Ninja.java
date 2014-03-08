@@ -6,10 +6,17 @@
 
 package com.mcode.ninja;
 
+import com.mcode.ninja.listeners.MessageListener;
+
 /**
  *
  * @author mliu
  */
 public interface Ninja {
-    
+    void sendMessage(byte[] subject, byte[] message);
+    void listenMessages(String url, byte[] subject, MessageListener listener);
+    /**
+     * Kills this ninja!
+     */
+    void die();
 }

@@ -11,5 +11,13 @@ package com.mcode.ninja;
  * @author mliu
  */
 public class NinjaMaster {
-    
+    public static Ninja createSendingNinja(String url) {
+        return null;
+    }
+    public static Ninja createReceivingNinja() {
+        return null;
+    }
+    public static Ninja createOmniNinja(String url) {
+        return null;
+    }
 }
