@@ -13,8 +13,8 @@ import com.mcode.ninja.listeners.MessageListener;
  * @author mliu
  */
 public interface Ninja {
-    void sendMessage(byte[] subject, byte[] message);
-    void listenMessages(String url, byte[] subject, MessageListener listener);
+    void sendMessage(byte[] topic, byte[] message);
+    void listenMessages(byte[] topic, MessageListener listener);
     /**
      * Kills this ninja!
      */

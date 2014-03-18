@@ -6,18 +6,30 @@
 
 package com.mcode.ninja;
 
+import com.mcode.ninja.receivers.ReceivingNinja;
+import com.mcode.ninja.senders.SendingNinja;
+import org.zeromq.ZMQ;
+
 /**
  *
  * @author mliu
  */
 public class NinjaMaster {
-    public static Ninja createSendingNinja(String url) {
+    private final ZMQ.Context ctx;
+    public NinjaMaster() {
+        ctx = ZMQ.context(1);
+    }
+    public Ninja createSendingNinja(String url) {
+        return new SendingNinja(ctx, url);
+    }
+    public Ninja createReceivingNinja(String url) {
+        return new ReceivingNinja(ctx, url);
+    }
+    public Ninja createOmniNinja(String url) {
         return null;
     }
-    public static Ninja createReceivingNinja() {
-        return null;
-    }
-    public static Ninja createOmniNinja(String url) {
-        return null;
+    
+    public void done() {
+        ctx.term();
     }
 }
